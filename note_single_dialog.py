@@ -1,5 +1,6 @@
 from PySide6.QtWidgets import QDialog, QVBoxLayout, QTextEdit, QHBoxLayout, QPushButton, QLabel, QComboBox
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QTextCharFormat, QColor
 
 class NoteSingleDialog(QDialog):
     COLORS = [
@@ -34,6 +35,9 @@ class NoteSingleDialog(QDialog):
             if idx >= 0:
                 self.color_combo.setCurrentIndex(idx)
         color_layout.addWidget(self.color_combo)
+        color_btn = QPushButton("Zmień kolor zaznaczenia")
+        color_btn.clicked.connect(self.change_text_color)
+        color_layout.addWidget(color_btn)
         layout.addLayout(color_layout)
         btn_layout = QHBoxLayout()
         save_btn = QPushButton("Zapisz")
@@ -46,7 +50,17 @@ class NoteSingleDialog(QDialog):
         self.setLayout(layout)
 
     def get_note(self):
-        return self.text_edit.toPlainText(), self.color_combo.currentData()
+        return self.text_edit.toHtml(), self.color_combo.currentData()
+
+    def change_text_color(self):
+        color = self.color_combo.currentData()
+        fmt = QTextCharFormat()
+        fmt.setForeground(QColor(color))
+        cursor = self.text_edit.textCursor()
+        if not cursor.hasSelection():
+            cursor.select(cursor.WordUnderCursor)
+        cursor.mergeCharFormat(fmt)
+        self.text_edit.mergeCurrentCharFormat(fmt)
 
     def delete_note(self):
         self.done(2)  # custom code for delete
