@@ -7,22 +7,25 @@ from task_manager import TaskManager
 from task_detail_dialog import TaskDetailDialog
 from task_list_dialog import TaskListDialog
 from login_dialog import LoginDialog
+from user_manager import UserManager
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Przykład QCalendarWidget")
         self.resize(400, 300)
-        self.task_manager = TaskManager()
+        self.user_manager = UserManager()
         self.theme = 'light'
         self.login_user()
         self.setup_ui()
         self.add_theme_switcher()
+        self.add_notes_menu()
 
     def login_user(self):
-        login_dialog = LoginDialog(self.task_manager)
+        login_dialog = LoginDialog(self.user_manager)
         if login_dialog.exec() != QDialog.Accepted:
             sys.exit(0)
+        self.task_manager = TaskManager(self.user_manager.user_id)
 
     def setup_ui(self):
         main_layout = QHBoxLayout()
@@ -63,6 +66,18 @@ class MainWindow(QMainWindow):
         theme_menu.addAction(light_action)
         theme_menu.addAction(dark_action)
         self.setMenuBar(menubar)
+
+    def add_notes_menu(self):
+        menubar = self.menuBar()
+        notes_menu = menubar.addMenu("Notatki")
+        open_notes_action = QAction("Otwórz notatki", self)
+        open_notes_action.triggered.connect(self.open_notes_dialog)
+        notes_menu.addAction(open_notes_action)
+
+    def open_notes_dialog(self):
+        from notes_dialog import NotesDialog
+        dialog = NotesDialog(self, self.user_manager.user_id)
+        dialog.exec()
 
     def set_theme(self, theme):
         app = QApplication.instance()
